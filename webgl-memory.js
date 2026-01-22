@@ -399,11 +399,13 @@
   }
 
   function collectObjects(state, type) {
-    const list = [...state.webglObjectToMemory.keys()]
-      .filter(obj => obj instanceof type)
-      .map((obj) => state.webglObjectToMemory.get(obj));
-
-    return list;
+    const map = new Map();
+    for (const [obj, memoryInfo] of state.webglObjectToMemory.entries()) {
+      if (obj instanceof type) {
+        map.set(obj, memoryInfo);
+      }
+    }
+    return map;
   }
 
   function getStackTrace() {
@@ -436,6 +438,7 @@
   IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
+
 
   //------------ [ from https://github.com/KhronosGroup/WebGLDeveloperTools ]
 
@@ -1145,6 +1148,7 @@
   IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   */
+
 
   function wrapGetContext(Ctor) {
     const oldFn = Ctor.prototype.getContext;

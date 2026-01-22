@@ -128,11 +128,13 @@ export function isNumber(v) {
 }
 
 export function collectObjects(state, type) {
-  const list = [...state.webglObjectToMemory.keys()]
-    .filter(obj => obj instanceof type)
-    .map((obj) => state.webglObjectToMemory.get(obj));
-
-  return list;
+  const map = new Map();
+  for (const [obj, memoryInfo] of state.webglObjectToMemory.entries()) {
+    if (obj instanceof type) {
+      map.set(obj, memoryInfo);
+    }
+  }
+  return map;
 }
 
 export function getStackTrace() {
