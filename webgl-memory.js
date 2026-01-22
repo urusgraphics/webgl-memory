@@ -1,4 +1,4 @@
-/* webgl-memory@1.1.2, license MIT */
+/* webgl-memory@2.0.0, license MIT */
 (function (factory) {
   typeof define === 'function' && define.amd ? define(factory) :
   factory();
