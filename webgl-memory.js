@@ -1,4 +1,4 @@
-/* webgl-memory@2.0.0, license MIT */
+/* webgl-memory@2.1.0, license MIT */
 (function (factory) {
   typeof define === 'function' && define.amd ? define(factory) :
   factory();
@@ -535,6 +535,7 @@
         sharedState.webglObjectToMemory.clear();
         sharedState.webglObjectToMemory.set(sharedState.defaultVertexArray, {});
         sharedState.currentVertexArray = sharedState.defaultVertexArray;
+        sharedState.activeTextureUnit = 0x84C0; // TEXTURE0
         [sharedState.resources, sharedState.memory].forEach(function(obj) {
           for (const prop in obj) {
             obj[prop] = 0;
@@ -584,6 +585,10 @@
 
       resetSharedState();
       return sharedState;
+    }
+
+    function getTextureBindingKey(target) {
+      return `${sharedState.activeTextureUnit}_${target}`;
     }
 
     const sharedState = options.sharedState || createSharedState(ctx);
@@ -663,6 +668,7 @@
     }
 
     const ELEMENT_ARRAY_BUFFER           = 0x8893;
+    const TEXTURE0                       = 0x84C0;
 
     const UNSIGNED_BYTE                  = 0x1401;
     const TEXTURE_CUBE_MAP               = 0x8513;
@@ -692,9 +698,10 @@
 
     function getTextureInfo(target) {
       target = isCubemapFace(target) ? TEXTURE_CUBE_MAP : target;
-      const obj = bindings.get(target);
+      const bindingKey = getTextureBindingKey(target);
+      const obj = bindings.get(bindingKey);
       if (!obj) {
-        throw new Error(`no texture bound to ${target}`);
+        throw new Error(`no texture bound to ${target} on unit ${sharedState.activeTextureUnit - TEXTURE0}`);
       }
       const info = webglObjectToMemory.get(obj);
       if (!info) {
@@ -846,12 +853,21 @@
         bindings.set(target, obj);
       },
 
+      activeTexture(gl, funcName, args) {
+        if (sharedState.isContextLost) {
+          return;
+        }
+        const [unit] = args;
+        sharedState.activeTextureUnit = unit;
+      },
+
       bindTexture(gl, funcName, args) {
         if (sharedState.isContextLost) {
          return;
         }
         const [target, obj] = args;
-        bindings.set(target, obj);
+        const bindingKey = getTextureBindingKey(target);
+        bindings.set(bindingKey, obj);
       },
 
       // void gl.copyTexImage2D(target, level, internalformat, x, y, width, height, border);
